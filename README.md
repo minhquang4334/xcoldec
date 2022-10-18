@@ -1,5 +1,5 @@
 # xcoldec 
-xcoldec implements decoding of xlsx column to golang structure. 
+xcoldec implements decoding of xlsx column per row to golang structure. 
 
 # Installation
 ```
@@ -20,7 +20,7 @@ import (
 	"github.com/xuri/excelize/v2"
 )
 
-type Anonymous struct {
+type EmbeddedStruct struct {
 	ColumnK string `col:"K"`
 	ColumnL int    `col:"L"`
 }
@@ -33,9 +33,9 @@ type SupportedType struct {
 	Float32  float32   `col:"E"`
 	Float64  float64   `col:"F"`
 	StrSlice []string  `col:"G"`
-  IntSlice []int     `col:"H"`
-  Time     time.Time `col:"I"`
-  Anonymous
+  	IntSlice []int     `col:"H"`
+  	Time     time.Time `col:"I"`
+  	EmbeddedStruct
 }
 
 
