@@ -113,6 +113,7 @@ var (
 	textUnmarshaler = reflect.TypeOf((*encoding.TextUnmarshaler)(nil)).Elem()
 )
 
+// refs: https://github.com/aereal/paramsenc/blob/main/unmarshal.go#L118
 func decodeScalar(val string, fieldValue reflect.Value) error {
 	if fieldValue.Type().Implements(textUnmarshaler) {
 		fv := fieldValue
