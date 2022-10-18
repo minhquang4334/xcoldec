@@ -9,15 +9,15 @@ import (
 )
 
 type testStruct struct {
-	Str      string    `column:"A"`
-	Int      int       `column:"B"`
-	Uint     uint      `column:"C"`
-	Boolean  bool      `column:"D"`
-	Float32  float32   `column:"E"`
-	Float64  float64   `column:"F"`
-	StrSlice []string  `column:"G"`
-	IntSlice []int     `column:"H"`
-	Time     time.Time `column:"I"`
+	Str      string    `col:"A"`
+	Int      int       `col:"B"`
+	Uint     uint      `col:"C"`
+	Boolean  bool      `col:"D"`
+	Float32  float32   `col:"E"`
+	Float64  float64   `col:"F"`
+	StrSlice []string  `col:"G"`
+	IntSlice []int     `col:"H"`
+	Time     time.Time `col:"I"`
 }
 
 func TestUnmarshal(t *testing.T) {
@@ -82,15 +82,15 @@ func TestUnmarshal(t *testing.T) {
 }
 
 type Anonymous struct {
-	ColumnF string `column:"F"`
-	ColumnG int    `column:"G"`
+	ColumnF string `col:"F"`
+	ColumnG int    `col:"G"`
 }
 
 type arbitraryStruct struct {
-	Str string `column:"B"`
-	Int int    `column:"E"`
+	Str string `col:"B"`
+	Int int    `col:"E"`
 	Anonymous
-	Boolean bool `column:"H"`
+	Boolean bool `col:"H"`
 }
 
 func TestUnmarshal_Arbitrary(t *testing.T) {
