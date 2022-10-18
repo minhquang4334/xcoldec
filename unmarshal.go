@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	defaultTag = "column"
+	defaultTag = "col"
 	sliceDelim = ","
 )
 

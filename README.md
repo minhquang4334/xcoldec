@@ -21,20 +21,20 @@ import (
 )
 
 type Anonymous struct {
-	ColumnK string `column:"K"`
-	ColumnL int    `column:"L"`
+	ColumnK string `col:"K"`
+	ColumnL int    `col:"L"`
 }
 
 type SupportedType struct {
-	Str      string    `column:"A"`
-	Int      int       `column:"B"`
-	Uint     uint      `column:"C"`
-	Boolean  bool      `column:"D"`
-	Float32  float32   `column:"E"`
-	Float64  float64   `column:"F"`
-	StrSlice []string  `column:"G"`
-  IntSlice []int     `column:"H"`
-  Time     time.Time `column:"I"`
+	Str      string    `col:"A"`
+	Int      int       `col:"B"`
+	Uint     uint      `col:"C"`
+	Boolean  bool      `col:"D"`
+	Float32  float32   `col:"E"`
+	Float64  float64   `col:"F"`
+	StrSlice []string  `col:"G"`
+  IntSlice []int     `col:"H"`
+  Time     time.Time `col:"I"`
   Anonymous
 }
 
