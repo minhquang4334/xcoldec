@@ -42,6 +42,7 @@ type Decoder struct {
 // - slices
 //   - the element type must be Decode() support type
 //   - element will split by "," from given string
+//
 // - time.Time
 func (d *Decoder) Decode(v interface{}) error {
 	vt := reflect.ValueOf(v)

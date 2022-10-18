@@ -87,10 +87,10 @@ type Anonymous struct {
 }
 
 type arbitraryStruct struct {
-	Str       string `column:"B"`
-	Int       int    `column:"E"`
+	Str string `column:"B"`
+	Int int    `column:"E"`
 	Anonymous
-	Boolean   bool `column:"H"`
+	Boolean bool `column:"H"`
 }
 
 func TestUnmarshal_Arbitrary(t *testing.T) {
