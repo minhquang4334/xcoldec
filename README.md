@@ -20,7 +20,7 @@ import (
 	"github.com/xuri/excelize/v2"
 )
 
-type Anonymous struct {
+type EmbeddedStruct struct {
 	ColumnK string `column:"K"`
 	ColumnL int    `column:"L"`
 }
@@ -33,9 +33,9 @@ type SupportedType struct {
 	Float32  float32   `column:"E"`
 	Float64  float64   `column:"F"`
 	StrSlice []string  `column:"G"`
-  IntSlice []int     `column:"H"`
-  Time     time.Time `column:"I"`
-  Anonymous
+  	IntSlice []int     `column:"H"`
+  	Time     time.Time `column:"I"`
+  	EmbeddedStruct
 }
 
 
