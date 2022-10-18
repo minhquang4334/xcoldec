@@ -80,3 +80,39 @@ func TestUnmarshal(t *testing.T) {
 		}
 	}
 }
+
+type Anonymous struct {
+	ColumnF string `column:"F"`
+	ColumnG int    `column:"G"`
+}
+
+type arbitraryStruct struct {
+	Str       string `column:"B"`
+	Int       int    `column:"E"`
+	Anonymous
+	Boolean   bool `column:"H"`
+}
+
+func TestUnmarshal_Arbitrary(t *testing.T) {
+	row := []string{"", "str", "", "", "32", "anonymous", "123", "true", ""}
+	dec := NewDecoder(row)
+	var got arbitraryStruct
+	err := dec.Decode(&got)
+	if err != nil {
+		t.Fatalf("error occurred: %v", err)
+	}
+
+	var want = arbitraryStruct{
+		Str: "str",
+		Int: 32,
+		Anonymous: Anonymous{
+			ColumnF: "anonymous",
+			ColumnG: 123,
+		},
+		Boolean: true,
+	}
+
+	if diff := cmp.Diff(&want, &got); diff != "" {
+		t.Errorf("-want, +got:\n%s", diff)
+	}
+}

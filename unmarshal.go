@@ -20,16 +20,29 @@ const (
 	sliceDelim = ","
 )
 
+// NewDecoder return a new decoder that read from row.
 func NewDecoder(row []string) *Decoder {
 	dec := &Decoder{row}
 
 	return dec
 }
 
+// Decoder decodes values from row.
 type Decoder struct {
 	row []string
 }
 
+// Decode decodes given row (string slice) to struct of column.
+//
+// Supported Go data types are:
+// - string
+// - int, float family
+// - Boolean
+// - the type implements encoding.TextUnmarshaler
+// - slices
+//   - the element type must be Decode() support type
+//   - element will split by "," from given string
+// - time.Time
 func (d *Decoder) Decode(v interface{}) error {
 	vt := reflect.ValueOf(v)
 	if vt.IsNil() || !(vt.Kind() == reflect.Pointer && vt.Elem().Kind() == reflect.Struct) {
@@ -49,7 +62,7 @@ func decode(row []string, v reflect.Value) error {
 	for i := 0; i < NumField; i++ {
 		sField := v.Type().Field(i)
 		sValue := v.Field(i)
-		// 構造体が埋め込まれていた場合、再帰的に探索
+		// recurrent decoding with embedding of struct
 		if sField.Anonymous {
 			decode(row, sValue)
 			continue
