@@ -1,5 +1,5 @@
 # xcoldec 
-xcoldec implements decoding of xlsx column to golang structure. 
+xcoldec implements decoding of xlsx column per row to golang structure. 
 
 # Installation
 ```
