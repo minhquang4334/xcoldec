@@ -25,6 +25,11 @@ type EmbeddedStruct struct {
 	ColumnL int    `col:"L"`
 }
 
+type SubStruct struct {
+	ColJ         int    `col:"J"`
+	ColK         string `col:"K"`
+}
+
 type SupportedType struct {
 	Str      string    `col:"A"`
 	Int      int       `col:"B"`
@@ -35,7 +40,8 @@ type SupportedType struct {
 	StrSlice []string  `col:"G"`
   	IntSlice []int     `col:"H"`
   	Time     time.Time `col:"I"`
-  	EmbeddedStruct
+    EmbeddedStruct
+    SubStruct SubStruct
 }
 
 

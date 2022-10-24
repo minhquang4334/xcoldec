@@ -31,7 +31,7 @@ func TestUnmarshal(t *testing.T) {
 	}{
 		{
 			"ok with all data type",
-			[]string{"str", "64", "128", "true", "3.14", "6.28", "a,b,c", "1,2,3", "2021-08-15 02:30:45"},
+			[]string{"str", "64", "128", "true", "3.14", "6.28", "a,b,c", "1,2,3", timeStr},
 			&testStruct{Str: "str", Int: 64, Uint: 128, Boolean: true, Float32: 3.14, Float64: 6.28, StrSlice: []string{"a", "b", "c"}, IntSlice: []int{1, 2, 3}, Time: timeData},
 			false,
 		},
@@ -81,20 +81,14 @@ func TestUnmarshal(t *testing.T) {
 	}
 }
 
-type Anonymous struct {
-	ColumnF string `col:"F"`
-	ColumnG int    `col:"G"`
-}
-
 type arbitraryStruct struct {
-	Str string `col:"B"`
-	Int int    `col:"E"`
-	Anonymous
-	Boolean bool `col:"H"`
+	Str     string `col:"B"`
+	Int     int    `col:"E"`
+	Boolean bool   `col:"H"`
 }
 
 func TestUnmarshal_Arbitrary(t *testing.T) {
-	row := []string{"", "str", "", "", "32", "anonymous", "123", "true", ""}
+	row := []string{"", "str", "", "", "32", "", "", "true", ""}
 	dec := NewDecoder(row)
 	var got arbitraryStruct
 	err := dec.Decode(&got)
@@ -103,13 +97,59 @@ func TestUnmarshal_Arbitrary(t *testing.T) {
 	}
 
 	var want = arbitraryStruct{
-		Str: "str",
-		Int: 32,
-		Anonymous: Anonymous{
-			ColumnF: "anonymous",
-			ColumnG: 123,
-		},
+		Str:     "str",
+		Int:     32,
 		Boolean: true,
+	}
+
+	if diff := cmp.Diff(&want, &got); diff != "" {
+		t.Errorf("-want, +got:\n%s", diff)
+	}
+}
+
+type EmbeddedStruct struct {
+	ColumnC string `col:"C"`
+	ColumnD int    `col:"D"`
+}
+
+type SubSubStruct struct {
+	ColE int    `col:"E"`
+	ColF string `col:"F"`
+}
+
+type SubStruct struct {
+	ColA         int    `col:"A"`
+	ColB         string `col:"B"`
+	SubSubStruct SubSubStruct
+}
+
+type Embedded struct {
+	Sub SubStruct
+	EmbeddedStruct
+}
+
+func TestUnmarshal_Embedded(t *testing.T) {
+	row := []string{"32", "str", "str2", "64", "128", "str3"}
+	dec := NewDecoder(row)
+	var got Embedded
+	err := dec.Decode(&got)
+	if err != nil {
+		t.Fatalf("error occurred: %v", err)
+	}
+
+	var want = Embedded{
+		Sub: SubStruct{
+			ColA: 32,
+			ColB: "str",
+			SubSubStruct: SubSubStruct{
+				ColE: 128,
+				ColF: "str3",
+			},
+		},
+		EmbeddedStruct: EmbeddedStruct{
+			ColumnC: "str2",
+			ColumnD: 64,
+		},
 	}
 
 	if diff := cmp.Diff(&want, &got); diff != "" {

@@ -20,6 +20,8 @@ const (
 	sliceDelim = ","
 )
 
+var nonScalarType = []string{"time.Time"}
+
 // NewDecoder return a new decoder that read from row.
 func NewDecoder(row []string) *Decoder {
 	dec := &Decoder{row}
@@ -44,6 +46,8 @@ type Decoder struct {
 //   - element will split by "," from given string
 //
 // - time.Time
+// - embedded struct
+// - sub struct
 func (d *Decoder) Decode(v interface{}) error {
 	vt := reflect.ValueOf(v)
 	if vt.IsNil() || !(vt.Kind() == reflect.Pointer && vt.Elem().Kind() == reflect.Struct) {
@@ -63,8 +67,9 @@ func decode(row []string, v reflect.Value) error {
 	for i := 0; i < NumField; i++ {
 		sField := v.Type().Field(i)
 		sValue := v.Field(i)
+		fmt.Println(sField.Type, sField.Anonymous, sField.Type.Kind())
 		// recurrent decoding with embedding of struct
-		if sField.Anonymous {
+		if sField.Anonymous || sField.Type.Kind() == reflect.Struct && !contains(nonScalarType, sField.Type.String()) {
 			decode(row, sValue)
 			continue
 		}
@@ -200,4 +205,13 @@ func getCol(row []string, col string) (string, error) {
 		return "", nil
 	}
 	return row[c-1], nil
+}
+
+func contains(s []string, e string) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
 }
