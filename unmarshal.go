@@ -70,7 +70,10 @@ func decode(row []string, v reflect.Value) error {
 		fmt.Println(sField.Type, sField.Anonymous, sField.Type.Kind())
 		// recurrent decoding with embedding of struct
 		if sField.Anonymous || sField.Type.Kind() == reflect.Struct && !contains(nonScalarType, sField.Type.String()) {
-			decode(row, sValue)
+			err := decode(row, sValue)
+			if err != nil {
+				return err
+			}
 			continue
 		}
 
