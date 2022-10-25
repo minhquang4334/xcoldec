@@ -67,7 +67,6 @@ func decode(row []string, v reflect.Value) error {
 	for i := 0; i < NumField; i++ {
 		sField := v.Type().Field(i)
 		sValue := v.Field(i)
-		fmt.Println(sField.Type, sField.Anonymous, sField.Type.Kind())
 		// recurrent decoding with embedding of struct
 		if sField.Anonymous || sField.Type.Kind() == reflect.Struct && !contains(nonScalarType, sField.Type.String()) {
 			err := decode(row, sValue)
