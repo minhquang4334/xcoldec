@@ -18,6 +18,7 @@ import (
 const (
 	defaultTag = "col"
 	sliceDelim = ","
+	tagDelim   = ","
 )
 
 var nonScalarType = []string{"time.Time"}
@@ -84,6 +85,14 @@ func decode(row []string, v reflect.Value) error {
 		cellVal, err := getCol(row, col.name)
 		if err != nil {
 			return err
+		}
+
+		if !col.omitEmpty && cellVal == "" {
+			return fmt.Errorf("Err: column %s should not be empty", col.name)
+		}
+
+		if col.omitEmpty && cellVal == "" {
+			continue
 		}
 
 		switch kind := sValue.Kind(); kind {
@@ -164,9 +173,9 @@ func decodeScalar(val string, fieldValue reflect.Value) error {
 		fieldValue.SetFloat(n)
 	case bool:
 		switch val {
-		case "true":
+		case "true", "1":
 			fieldValue.SetBool(true)
-		case "false":
+		case "false", "0":
 			fieldValue.SetBool(false)
 		default:
 			return fmt.Errorf("invalid boolean: %s", val)
@@ -185,16 +194,24 @@ func decodeScalar(val string, fieldValue reflect.Value) error {
 }
 
 type option struct {
-	name string
+	name      string
+	omitEmpty bool
 }
 
 func parseTag(tag reflect.StructTag) *option {
 	val, ok := tag.Lookup(defaultTag)
-	if !ok {
+	if !ok || val == "" {
 		return nil
 	}
 
-	return &option{name: val}
+	res := strings.Split(val, tagDelim)
+	colName := res[0]
+	omitEmpty := false
+	if len(res) > 1 && res[1] == "omitempty" {
+		omitEmpty = true
+	}
+
+	return &option{name: colName, omitEmpty: omitEmpty}
 }
 
 func getCol(row []string, col string) (string, error) {
