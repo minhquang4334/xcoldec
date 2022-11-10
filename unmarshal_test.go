@@ -158,3 +158,49 @@ func TestUnmarshal_Embedded(t *testing.T) {
 		t.Errorf("-want, +got:\n%s", diff)
 	}
 }
+
+type omitEmptyStruct struct {
+	Int     int    `col:"A,omitempty"`
+	Str     string `col:"B"`
+	Boolean bool   `col:"C"`
+}
+
+func TestUnmarshal_OmitEmpty(t *testing.T) {
+	testCases := []struct {
+		name    string
+		row     []string
+		want    *omitEmptyStruct
+		wantErr bool
+	}{
+		{
+			"omit empty ok",
+			[]string{"", "str", "true"},
+			&omitEmptyStruct{
+				Str:     "str",
+				Boolean: true,
+			},
+			false,
+		},
+		{
+			"not omit empty",
+			[]string{"2", "", "true"},
+			&omitEmptyStruct{Int: 2},
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			dec := NewDecoder(tc.row)
+			var got omitEmptyStruct
+			err := dec.Decode(&got)
+			gotErr := err != nil
+			if gotErr != tc.wantErr {
+				t.Fatalf("wantErr=%v but got=%v, err=%v", tc.wantErr, gotErr, err)
+			}
+			if diff := cmp.Diff(tc.want, &got); diff != "" {
+				t.Errorf("-want, +got:\n%s", diff)
+			}
+		})
+	}
+}
