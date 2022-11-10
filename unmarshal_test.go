@@ -68,16 +68,18 @@ func TestUnmarshal(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		dec := NewDecoder(tc.row)
-		var got testStruct
-		err := dec.Decode(&got)
-		gotErr := err != nil
-		if gotErr != tc.wantErr {
-			t.Fatalf("wantErr=%v but got=%v", tc.wantErr, gotErr)
-		}
-		if diff := cmp.Diff(tc.want, &got); diff != "" {
-			t.Errorf("-want, +got:\n%s", diff)
-		}
+		t.Run(tc.name, func(t *testing.T) {
+			dec := NewDecoder(tc.row)
+			var got testStruct
+			err := dec.Decode(&got)
+			gotErr := err != nil
+			if gotErr != tc.wantErr {
+				t.Fatalf("wantErr=%v but got=%v", tc.wantErr, gotErr)
+			}
+			if diff := cmp.Diff(tc.want, &got); diff != "" {
+				t.Errorf("-want, +got:\n%s", diff)
+			}
+		})
 	}
 }
 
