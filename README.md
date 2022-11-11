@@ -31,17 +31,17 @@ type SubStruct struct {
 }
 
 type SupportedType struct {
-	Str      string    `col:"A"`
-	Int      int       `col:"B"`
-	Uint     uint      `col:"C"`
-	Boolean  bool      `col:"D"`
-	Float32  float32   `col:"E"`
-	Float64  float64   `col:"F"`
-	StrSlice []string  `col:"G"`
-  	IntSlice []int     `col:"H"`
-  	Time     time.Time `col:"I"`
-    EmbeddedStruct
-    SubStruct SubStruct
+  Str      string    `col:"A,omitempty"`
+  Int      int       `col:"B"` // should not be empty
+  Uint     uint      `col:"C"`
+  Boolean  bool      `col:"D"`
+  Float32  float32   `col:"E"`
+  Float64  float64   `col:"F"`
+  StrSlice []string  `col:"G"`
+  IntSlice []int     `col:"H"`
+  Time     time.Time `col:"I"`
+  EmbeddedStruct
+  SubStruct SubStruct
 }
 
 
