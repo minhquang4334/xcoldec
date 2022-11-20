@@ -204,3 +204,34 @@ func TestUnmarshal_OmitEmpty(t *testing.T) {
 		})
 	}
 }
+
+type testBooleanStruct struct {
+	False1 bool `col:"A,omitempty"`
+	False2 bool `col:"B"`
+	False3 bool `col:"C"`
+	True1  bool `col:"D"`
+	True2  bool `col:"E"`
+}
+
+func TestUnmarshal_Boolean(t *testing.T) {
+	testStr := []string{"", "false", "0", "true", "1"}
+
+	dec := NewDecoder(testStr)
+	var got testBooleanStruct
+	err := dec.Decode(&got)
+	if err != nil {
+		t.Fatalf("error occurred: %v", err)
+	}
+
+	var want = testBooleanStruct{
+		False1: false,
+		False2: false,
+		False3: false,
+		True1:  true,
+		True2:  true,
+	}
+
+	if diff := cmp.Diff(&want, &got); diff != "" {
+		t.Errorf("-want, +got:\n%s", diff)
+	}
+}
