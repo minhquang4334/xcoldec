@@ -175,7 +175,7 @@ func decodeScalar(val string, fieldValue reflect.Value) error {
 		switch val {
 		case "true", "1":
 			fieldValue.SetBool(true)
-		case "false", "0":
+		case "false", "0", "":
 			fieldValue.SetBool(false)
 		default:
 			return fmt.Errorf("invalid boolean: %s", val)
