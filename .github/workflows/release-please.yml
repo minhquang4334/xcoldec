@@ -7,13 +7,11 @@ jobs:
   release-please:
     runs-on: ubuntu-latest
     permissions:
-      contents: write # ReleasesへのPOST
-      pull-requests: write # Pull Requestの作成
-    outputs:
-      release_created: ${{ steps.release.outputs.release_created }}
+      contents: write
+      pull-requests: write
     steps:
       - uses: google-github-actions/release-please-action@v3
         id: release
         with:
           release-type: go
-          package-name: xcoldec
+          default-branch: main
