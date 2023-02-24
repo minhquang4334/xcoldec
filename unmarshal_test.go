@@ -1,4 +1,4 @@
-package xcoldec
+package xcoldec_test
 
 import (
 	"testing"
@@ -6,6 +6,7 @@ import (
 
 	"github.com/araddon/dateparse"
 	"github.com/google/go-cmp/cmp"
+	"github.com/minhquang4334/xcoldec"
 )
 
 type testStruct struct {
@@ -69,7 +70,7 @@ func TestUnmarshal(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			dec := NewDecoder(tc.row)
+			dec := xcoldec.NewDecoder(tc.row)
 			var got testStruct
 			err := dec.Decode(&got)
 			gotErr := err != nil
@@ -91,7 +92,7 @@ type arbitraryStruct struct {
 
 func TestUnmarshal_Arbitrary(t *testing.T) {
 	row := []string{"", "str", "", "", "32", "", "", "true", ""}
-	dec := NewDecoder(row)
+	dec := xcoldec.NewDecoder(row)
 	var got arbitraryStruct
 	err := dec.Decode(&got)
 	if err != nil {
@@ -132,7 +133,7 @@ type Embedded struct {
 
 func TestUnmarshal_Embedded(t *testing.T) {
 	row := []string{"32", "str", "str2", "64", "128", "str3"}
-	dec := NewDecoder(row)
+	dec := xcoldec.NewDecoder(row)
 	var got Embedded
 	err := dec.Decode(&got)
 	if err != nil {
@@ -191,7 +192,7 @@ func TestUnmarshal_OmitEmpty(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			dec := NewDecoder(tc.row)
+			dec := xcoldec.NewDecoder(tc.row)
 			var got omitEmptyStruct
 			err := dec.Decode(&got)
 			gotErr := err != nil
@@ -216,7 +217,7 @@ type testBooleanStruct struct {
 func TestUnmarshal_Boolean(t *testing.T) {
 	testStr := []string{"", "false", "0", "true", "1"}
 
-	dec := NewDecoder(testStr)
+	dec := xcoldec.NewDecoder(testStr)
 	var got testBooleanStruct
 	err := dec.Decode(&got)
 	if err != nil {

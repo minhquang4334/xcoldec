@@ -21,7 +21,10 @@ const (
 	tagDelim   = ","
 )
 
-var nonScalarType = []string{"time.Time"}
+var (
+	nonScalarType             = []string{"time.Time"}
+	ErrInvalidPointerOfStruct = errors.New("v must be a pointer of struct")
+)
 
 // NewDecoder return a new decoder that read from row.
 func NewDecoder(row []string) *Decoder {
@@ -52,7 +55,7 @@ type Decoder struct {
 func (d *Decoder) Decode(v interface{}) error {
 	vt := reflect.ValueOf(v)
 	if vt.IsNil() || !(vt.Kind() == reflect.Pointer && vt.Elem().Kind() == reflect.Struct) {
-		return errors.New("v must be a pointer of struct")
+		return ErrInvalidPointerOfStruct
 	}
 
 	if err := decode(d.row, reflect.ValueOf(v).Elem()); err != nil {
@@ -88,7 +91,12 @@ func decode(row []string, v reflect.Value) error {
 		}
 
 		if !col.omitEmpty && cellVal == "" {
-			return fmt.Errorf("Err: column %s should not be empty", col.name)
+			return &DecodeError{
+				column:       col.name,
+				expectedType: sValue.Kind().String(),
+				gotValue:     cellVal,
+				errMsg: "should not be empty",
+			}
 		}
 
 		if col.omitEmpty && cellVal == "" {
@@ -109,14 +117,14 @@ func decode(row []string, v reflect.Value) error {
 			}
 
 			for i, el := range els {
-				if err := decodeScalar(el, sValue.Index(i)); err != nil {
+				if err := decodeScalar(el, sValue.Index(i), col.name); err != nil {
 					sValue.Set(reflect.Zero(sValue.Type()))
 					return err
 				}
 			}
 
 		default:
-			if err := decodeScalar(cellVal, sValue); err != nil {
+			if err := decodeScalar(cellVal, sValue, col.name); err != nil {
 				return err
 			}
 		}
@@ -130,7 +138,7 @@ var (
 )
 
 // refs: https://github.com/aereal/paramsenc/blob/main/unmarshal.go#L118
-func decodeScalar(val string, fieldValue reflect.Value) error {
+func decodeScalar(val string, fieldValue reflect.Value, colName string) error {
 	if fieldValue.Type().Implements(textUnmarshaler) {
 		fv := fieldValue
 		if fv.IsNil() {
@@ -141,34 +149,65 @@ func decodeScalar(val string, fieldValue reflect.Value) error {
 		}
 	}
 
+	expectedType := fieldValue.Kind().String()
 	switch kind := fieldValue.Interface(); kind.(type) {
 	case string:
 		fieldValue.SetString(val)
 	case int, int8, int16, int32, int64:
 		n, err := strconv.ParseInt(val, 10, 64)
 		if err != nil {
-			return fmt.Errorf("cannot convert value %q to %T: %w", val, kind, err)
+			return &DecodeError{
+				column:       colName,
+				expectedType: expectedType,
+				gotValue:     val,
+				errMsg:       err.Error(),
+			}
 		}
 		if fieldValue.OverflowInt(n) {
-			return fmt.Errorf("cannot convert value %q: overflow int size", val)
+			return &DecodeError{
+				column:       colName,
+				expectedType: expectedType,
+				gotValue:     val,
+				errMsg:       "overflow int size",
+			}
 		}
 		fieldValue.SetInt(n)
 	case uint, uint8, uint16, uint32, uint64:
 		n, err := strconv.ParseUint(val, 10, 64)
 		if err != nil {
-			return fmt.Errorf("cannot convert value %q to %T: %w", val, kind, err)
+			return &DecodeError{
+				column:       colName,
+				expectedType: expectedType,
+				gotValue:     val,
+				errMsg:       err.Error(),
+			}
 		}
 		if fieldValue.OverflowUint(n) {
-			return fmt.Errorf("cannot convert value %q: overflow uint size", val)
+			return &DecodeError{
+				column:       colName,
+				expectedType: expectedType,
+				gotValue:     val,
+				errMsg:       "overflow uint size",
+			}
 		}
 		fieldValue.SetUint(n)
 	case float32, float64:
 		n, err := strconv.ParseFloat(val, fieldValue.Type().Bits())
 		if err != nil {
-			return fmt.Errorf("cannot convert value %q to %T: %w", val, kind, err)
+			return &DecodeError{
+				column:       colName,
+				expectedType: expectedType,
+				gotValue:     val,
+				errMsg:       err.Error(),
+			}
 		}
 		if fieldValue.OverflowFloat(n) {
-			return fmt.Errorf("cannot convert value %q: overflow float size", val)
+			return &DecodeError{
+				column:       colName,
+				expectedType: expectedType,
+				gotValue:     val,
+				errMsg:       "overflow float size",
+			}
 		}
 		fieldValue.SetFloat(n)
 	case bool:
@@ -178,17 +217,32 @@ func decodeScalar(val string, fieldValue reflect.Value) error {
 		case "false", "0", "":
 			fieldValue.SetBool(false)
 		default:
-			return fmt.Errorf("invalid boolean: %s", val)
+			return &DecodeError{
+				column:       colName,
+				expectedType: expectedType,
+				gotValue:     val,
+				errMsg:       "invalid boolean value, value should be in (0, 1, true, false)",
+			}
 		}
 	case time.Time:
 		n, err := dateparse.ParseAny(val)
 		if err != nil {
-			return fmt.Errorf("cannot convert value %q to %T: %w", val, kind, err)
+			return &DecodeError{
+				column:       colName,
+				expectedType: expectedType,
+				gotValue:     val,
+				errMsg:       err.Error(),
+			}
 		}
 		fieldValue.Set(reflect.ValueOf(n))
 
 	default:
-		return fmt.Errorf("%T is cannot unmarshal", kind)
+		return &DecodeError{
+			column:       colName,
+			expectedType: expectedType,
+			gotValue:     val,
+			errMsg:       "unknown error, cannot unmarshal",
+		}
 	}
 	return nil
 }
@@ -233,4 +287,17 @@ func contains(s []string, e string) bool {
 		}
 	}
 	return false
+}
+
+type DecodeError struct {
+	column       string
+	expectedType string
+	gotValue     string
+	errMsg       string
+}
+
+var _ error = &DecodeError{}
+
+func (e *DecodeError) Error() string {
+	return fmt.Sprintf("can not decode value of column %q: expectedType: %q, gotValue: %q, errMsg: %q", e.column, e.expectedType, e.gotValue, e.errMsg)
 }
